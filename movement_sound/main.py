@@ -11,6 +11,8 @@ class Player:
         self.load_sounds()
         self.load_images()
         self.state = 'idle'
+        self.image = None
+        self.controls = (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT)
         self.time_point = pygame.time.get_ticks()
 
     def load_images(self):
@@ -35,20 +37,18 @@ class Player:
 
     def draw(self, surf):
         if self.state == 'idle':
-            image = next(self.images['idle'])
+            self.image = next(self.images['idle'])
             
         if self.state == 'moving':
             if pygame.time.get_ticks() - self.time_point > 200:
-                image = next(self.images['moving'])
+                self.image = next(self.images['moving'])
                 self.time_point = pygame.time.get_ticks()
 
-        surf.blit(image, (self.x, self.y))
+        surf.blit(self.image, (self.x, self.y))
 
     def move(self, pressed_keys):
-        self.state = 'moving'
-
         # TODO: add constraints
-        if pressed_keys[pygame.K_UP]:            
+        if pressed_keys[pygame.K_UP]:
             self.y -= 1
         if pressed_keys[pygame.K_DOWN]:
             self.y += 1
@@ -57,25 +57,24 @@ class Player:
         if pressed_keys[pygame.K_RIGHT]:
             self.x += 1
 
-        if pygame.KEYUP:
-            print('nojno')
-
     def update(self, pressed_keys):
-        if pygame.time.get_ticks() - self.time_point > 500:
+        if any(pressed_keys[key] for key in self.controls):
+            self.state = 'moving'
+            # if pygame.time.get_ticks() - self.time_point > 100:
+                # self.time_point = pygame.time.get_ticks()
             self.move(pressed_keys)
-            self.time_point = pygame.time.get_ticks()
-        # self.time_point = pygame.time.get_ticks()
+        else:
+            self.state = 'idle'
 
-        # if pygame.KEYUP:
-        #     print(f'test {pygame.time.get_ticks()}')
-        #     self.state = 'idle'
+        # if pygame.time.get_ticks() - self.time_point > 500:
+        #     self.move(pressed_keys)
+        #     self.time_point = pygame.time.get_ticks()
             
-        if pressed_keys[pygame.K_w]:
-            player.walk_sound.play()
+        # if pressed_keys[pygame.K_w]:
+        #     player.walk_sound.play()
 
-        if pressed_keys[pygame.K_SPACE]:
-            player.jump_sound.play()
-
+        # if pressed_keys[pygame.K_SPACE]:
+        #     player.jump_sound.play()
 
 
 def main():
@@ -95,6 +94,8 @@ def main():
     player = Player(0, 0)
 
     while True:
+        clock.tick(30)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -108,8 +109,6 @@ def main():
         player.draw(surf)
         screen.blit(pygame.transform.scale(surf, screen.get_size()), (0, 0))
         pygame.display.update()
-
-        clock.tick(60)
         
 
 if __name__ == '__main__':
